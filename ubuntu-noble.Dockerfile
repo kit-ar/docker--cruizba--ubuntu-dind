@@ -49,21 +49,7 @@ RUN set -eux; \
     && rm -rf aws awscliv2.zip
 
 # Install Azure CLI
-ENV AZURE_CLI_VERSION=2.69.0
-RUN apt-get update \
-    && apt-get install -y gpg lsb-release \
-    && mkdir -p /etc/apt/keyrings \
-    && for i in {1..5}; do \
-         curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
-         gpg --dearmor > /etc/apt/keyrings/microsoft.gpg && break || \
-         echo "Retry $i downloading Microsoft GPG key..." && sleep 2; \
-       done \
-    && AZ_REPO=$(lsb_release -cs) \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | \
-       tee /etc/apt/sources.list.d/azure-cli.list \
-    && apt-get update \
-    && apt-get install -y azure-cli=${AZURE_CLI_VERSION}-1~$(lsb_release -cs) \
-    && rm -rf /var/lib/apt/lists/*
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
 
 ENV DOCKER_CHANNEL=stable \
