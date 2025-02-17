@@ -16,11 +16,18 @@ RUN apt update \
 ENV HELM_VERSION=v3.17.1 \
     YQ_VERSION=v4.45.1
 
-RUN wget -O helm.tar.gz "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" \
+RUN set -eux; \
+    arch="$(uname -m)"; \
+    case "$arch" in \
+        x86_64) helmArch='amd64' ; yqArch='amd64' ;; \
+        aarch64) helmArch='arm64' ; yqArch='arm64' ;; \
+        *) echo >&2 "error: unsupported architecture ($arch)"; exit 1 ;; \
+    esac; \
+    wget -O helm.tar.gz "https://get.helm.sh/helm-${HELM_VERSION}-linux-${helmArch}.tar.gz" \
     && tar -xzf helm.tar.gz \
-    && mv linux-amd64/helm /usr/local/bin/helm \
-    && rm -rf linux-amd64 helm.tar.gz \
-    && wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" \
+    && mv linux-${helmArch}/helm /usr/local/bin/helm \
+    && rm -rf linux-${helmArch} helm.tar.gz \
+    && wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${yqArch}" \
     && chmod +x /usr/local/bin/yq \
     && helm version --short \
     && yq --version
