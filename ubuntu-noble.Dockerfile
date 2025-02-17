@@ -32,6 +32,34 @@ RUN set -eux; \
     && helm version --short \
     && yq --version
 
+
+# Install AWS CLI
+ENV AWS_CLI_VERSION=2.24.5
+
+RUN set -eux; \
+    arch="$(uname -m)"; \
+    case "$arch" in \
+        x86_64) awsArch='x86_64' ;; \
+        aarch64) awsArch='aarch64' ;; \
+        *) echo >&2 "error: unsupported architecture ($arch)"; exit 1 ;; \
+    esac; \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-${awsArch}-${AWS_CLI_VERSION}.zip" -o "awscliv2.zip" \
+    && unzip awscliv2.zip \
+    && ./aws/install \
+    && rm -rf aws awscliv2.zip
+
+# Install Azure CLI
+ENV AZURE_CLI_VERSION=2.69.0
+RUN apt-get update \
+    && apt-get install -y gpg lsb-release \
+    && curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null \
+    && AZ_REPO=$(lsb_release -cs) \
+    && echo "deb [arch=$(dpkg --print-architecture)] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | tee /etc/apt/sources.list.d/azure-cli.list \
+    && apt-get update \
+    && apt-get install -y azure-cli=${AZURE_CLI_VERSION}-1~$(lsb_release -cs) \
+    && rm -rf /var/lib/apt/lists/*
+
+
 ENV DOCKER_CHANNEL=stable \
 	DOCKER_VERSION=25.0.3 \
 	DOCKER_COMPOSE_VERSION=v2.24.5 \
