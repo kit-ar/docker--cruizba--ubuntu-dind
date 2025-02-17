@@ -8,9 +8,22 @@ RUN apt update \
     less \
     git git-lfs \
     unzip \
-    dotnet-sdk-8.0 \
+    dotnet-sdk-8.0 \	
     && rm -rf /var/lib/apt/list/* \
     && update-alternatives --set iptables /usr/sbin/iptables-legacy
+
+# we also need YQ and Helm in our pipelines 
+ENV HELM_VERSION=v3.17.1 \
+    YQ_VERSION=v4.45.1
+
+RUN wget -O helm.tar.gz "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" \
+    && tar -xzf helm.tar.gz \
+    && mv linux-amd64/helm /usr/local/bin/helm \
+    && rm -rf linux-amd64 helm.tar.gz \
+    && wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" \
+    && chmod +x /usr/local/bin/yq \
+    && helm version --short \
+    && yq --version
 
 ENV DOCKER_CHANNEL=stable \
 	DOCKER_VERSION=25.0.3 \
