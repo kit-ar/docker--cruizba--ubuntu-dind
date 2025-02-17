@@ -48,9 +48,6 @@ RUN set -eux; \
     && ./aws/install \
     && rm -rf aws awscliv2.zip
 
-# Install Azure CLI
-RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
-
 
 ENV DOCKER_CHANNEL=stable \
 	DOCKER_VERSION=25.0.3 \
