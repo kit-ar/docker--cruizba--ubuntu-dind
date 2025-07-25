@@ -1,4 +1,4 @@
-# based on cruizba/ubuntu-dind, with addition of git, dotnet-runtime (for AZDO GitVersion) and less (of course)
+# based on cruizba/ubuntu-dind, with addition of git, dotnet-runtime (for AZDO GitVersion), less (of course), and ORAS (for pushing OCI images)
 #
 FROM ubuntu:24.04
 
@@ -111,6 +111,15 @@ RUN curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOS
 # Create a symlink to the docker binary in /usr/local/lib/docker/cli-plugins
 # for users which uses 'docker compose' instead of 'docker-compose'
 RUN ln -s /usr/local/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
+
+
+# ORAS installation
+RUN ORAS_VERSION="1.2.2" && \
+    curl -LO "https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz" && \
+    mkdir -p oras-install/ && \
+    tar -zxf oras_${ORAS_VERSION}_*.tar.gz -C oras-install/ && \
+    mv oras-install/oras /usr/local/bin/ && \
+    rm -rf oras_${ORAS_VERSION}_*.tar.gz oras-install/
 
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["bash"]
