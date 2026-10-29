@@ -21,6 +21,8 @@ jobs:
   # the per-arch digests into the final multi-arch manifests.
   build:
     name: build (${{ matrix.ubuntu_version }}, ${{ matrix.ubuntu_name }}, ${{ matrix.arch }})
+    # kit-ar fork: upstream-only job, see .github/workflows/build-and-push-to-ghcr.yml
+    if: github.repository == 'cruizba/ubuntu-dind'
     # TEMPORARY pin to 24.04: Sysbox only supports a specific set of distros/kernels
     # (https://github.com/nestybox/sysbox/blob/master/docs/distro-compat.md). The
     # kernel 7.0 on newer runner images (ubuntu-latest / ubuntu-26.04) appears to be

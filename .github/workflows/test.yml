@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     name: test (${{ matrix.ubuntu_version }}, ${{ matrix.ubuntu_name }}, ${{ matrix.arch }})
+    # kit-ar fork: upstream-only job, see .github/workflows/build-and-push-to-ghcr.yml
+    if: github.repository == 'cruizba/ubuntu-dind'
     # Each architecture builds and tests natively (amd64 on ubuntu-24.04,
     # arm64 on ubuntu-24.04-arm) — DinD cannot run under QEMU emulation
     # (netfilter/runc kernel interfaces are not translated by qemu-user).

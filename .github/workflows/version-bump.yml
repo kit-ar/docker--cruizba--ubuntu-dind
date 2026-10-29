@@ -26,6 +26,8 @@ on:
 
 jobs:
   version-bump:
+    # kit-ar fork: upstream-only job, see .github/workflows/build-and-push-to-ghcr.yml
+    if: github.repository == 'cruizba/ubuntu-dind'
     runs-on: ubuntu-latest
     permissions:
       contents: write
