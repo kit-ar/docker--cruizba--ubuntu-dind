@@ -15,9 +15,10 @@ fi
 docker run --rm --entrypoint bash "$1" -euxo pipefail -c '
     git --version
     git lfs version
-    less --version | head -n 1
-    zip -v | head -n 2
-    unzip -v | head -n 1
+    # sed, not head: head exits early and SIGPIPE fails the pipe under pipefail
+    less --version | sed -n 1p
+    zip -v | sed -n 2p
+    unzip -v | sed -n 1p
     dotnet --list-sdks | grep .
     dotnet --list-runtimes | grep .
     helm version --short
@@ -28,17 +29,15 @@ docker run --rm --entrypoint bash "$1" -euxo pipefail -c '
     # Binaries must match the image architecture, not just exist.
     machine="$(uname -m)"
     case "$machine" in
-        x86_64) want="x86-64" ;;
-        aarch64) want="aarch64" ;;
+        x86_64) want="3e00" ;;
+        aarch64) want="b700" ;;
         *) echo "unsupported architecture: $machine" >&2; exit 1 ;;
     esac
     for bin in /usr/local/bin/helm /usr/local/bin/yq /usr/local/bin/oras; do
         [ "$(stat -c %U:%G "$bin")" = "root:root" ]
-        od -An -tx1 -N20 "$bin" | tr -d " \n" | grep -q "^7f454c46"
-        case "$want" in
-            x86-64) od -An -tx1 -j18 -N2 "$bin" | tr -d " \n" | grep -qx "3e00" ;;
-            aarch64) od -An -tx1 -j18 -N2 "$bin" | tr -d " \n" | grep -qx "b700" ;;
-        esac
+        # ELF magic, then e_machine at offset 18
+        [ "$(od -An -tx1 -N4 "$bin" | tr -d " \n")" = "7f454c46" ]
+        [ "$(od -An -tx1 -j18 -N2 "$bin" | tr -d " \n")" = "$want" ]
     done
 
     # yq must actually work, not just print its version.
