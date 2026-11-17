@@ -1,9 +1,14 @@
+[![GitHub Repo stars](https://img.shields.io/github/stars/cruizba/ubuntu-dind)](https://github.com/cruizba/ubuntu-dind)
+[![GitHub Release Date](https://img.shields.io/github/release-date/cruizba/ubuntu-dind)](https://github.com/cruizba/ubuntu-dind/releases)
+
+[![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/cruizba)](https://x.com/cruizba)
+
 # Ubuntu DinD(Docker in Docker) Image
 
 A docker image based in ubuntu to run docker containers inside docker containers with some extras:
 
 1. Easy to use ([More Info](#3-usage-guide)):
-> ## :warning::warning: WARNING :warning::warning:
+> [!WARNING]
 > The option `--privileged` is not secure. Just for dev or testing purposes.
 > To do this in the GOOD AND SECURE WAY just use: https://github.com/nestybox/sysbox
 ```
@@ -13,7 +18,7 @@ or with [sysbox](https://github.com/nestybox/sysbox/blob/master/docs/user-guide/
 ```
 docker run -it --runtime=sysbox-runc cruizba/ubuntu-dind
 ```
-2. Compatible with current LTS versions of Ubuntu (`focal`, `jammy` and `noble`)
+2. Compatible with current LTS versions of Ubuntu (`jammy`, `noble` and `resolute`)
 3. Support for arm64 and amd64 architectures.
 4. Easy to extend, customize and use.
 5. Always updated with current buildx, compose and docker versions.
@@ -25,13 +30,14 @@ docker run -it --runtime=sysbox-runc cruizba/ubuntu-dind
    - [Docker-out-of-Docker (DooD) Using Socket Sharing: Challenges](#21-docker-out-of-docker-dood-using-socket-sharing-challenges)
    - [DinD with Docker Daemon Running in the Container: Solution](#22-dind-with-docker-daemon-running-in-the-container-solution)
 3. [Usage Guide](#3-usage-guide)
-   - [(Insecure) Using the `--privileged` Option](#31-insecure-using-the---privileged-option)
-   - [(Secure) Using the `nestybox/sysbox` Runtime](#32-secure-using-the-nestyboxsysbox-runtime)
+   - [Quickest but insecure way](#31-quickest-but-insecure-way)
+   - [Safer and recommended way](#32-safer-and-recommended-way)
 4. [Use Cases](#4-use-cases)
    - [Environment to Test Docker Images](#41-environment-to-test-docker-images)
    - [Running Docker Commands Directly](#42-running-docker-commands-directly)
    - [Extensibility (Automating Builds, Tests with Scripts)](#43-extensibility-automating-builds-tests-with-scripts)
 5. [Available Images](#5-available-images)
+6. [Support what I do](#6-support-what-i-do)
 
 ## 1. Credits
 
@@ -66,7 +72,7 @@ You can see how to run this insecurely or securely in the [Usage Guide](#usage-g
 
 Test or use this image is quite simple, and you have two options to do it.
 
-### 3.1. (Insecure) Using the `--privileged` Option:
+### 3.1 Quickest but insecure way:
 
 To use this Docker-in-Docker image, run the following command:
 
@@ -74,18 +80,32 @@ To use this Docker-in-Docker image, run the following command:
 docker run -it --privileged cruizba/ubuntu-dind
 ```
 
-This launches a bash terminal with an independent Docker environment isolated from your host, where you can build, run, and push Docker images.
+If you want to have a systemd environment, you can also use the `systemd-latest` tag:
 
-It's not ready for production usage, but I find it useful for development and testing purposes.
+```bash
+docker run -d --name ubuntu-dind --privileged cruizba/ubuntu-dind:systemd-latest
+docker exec -it ubuntu-dind bash
+```
 
-### 3.2. (Secure) Using the `nestybox/sysbox` Runtime:
+### 3.2 Safer and recommended way:
 
 For this option you need to have Sysbox installed in your system. You can see how to install it [here](https://github.com/nestybox/sysbox/blob/master/docs/user-guide/install-package.md) (Package installation works only in debian-based distros sadly).
 
-To use this Docker-in-Docker image securely, run the following command:
+> [!WARNING]
+> Sysbox only supports a specific set of Linux distributions and kernels. Check the [Sysbox distro compatibility list](https://github.com/nestybox/sysbox/blob/master/docs/distro-compat.md) before using `--runtime=sysbox-runc`.
+> In particular, **kernel 7.x currently appears to be unstable with Sysbox** (observed in our CI — this is not an official Sysbox statement), so hosts running it (such as Ubuntu 26.04 `resolute`) may fail to start `sysbox-runc` containers. Until kernel 7.x is officially supported by Sysbox, run it on a host with a supported kernel.
+
+To use this Docker-in-Docker image in a more secure environment, run the following command:
 
 ```bash
 docker run -it --runtime=sysbox-runc cruizba/ubuntu-dind
+```
+
+If you want to have a systemd environment, you can also use the `systemd-latest` tag:
+
+```bash
+docker run -d --name ubuntu-dind --runtime=sysbox-runc cruizba/ubuntu-dind:systemd-latest
+docker exec -it ubuntu-dind bash
 ```
 
 ## 4. Use cases
@@ -153,7 +173,101 @@ It is very important to notice that you need to run the `start-docker.sh` script
 
 You have this example in the `examples` folder.
 
+> [!NOTE]
+> With systemd images, the entrypoint script is different and the `start-docker.sh` script is not needed. To execute commands in systemd images, you need to `docker exec` into the container and run the commands.
+
 ## 5. Available images
 
-You can find the available images in the [Docker Hub](https://hub.docker.com/r/cruizba/ubuntu-dind).
+Images are published to three registries:
+
+| Registry | URL |
+|----------|-----|
+| Docker Hub | https://hub.docker.com/r/cruizba/ubuntu-dind |
+| GitHub Container Registry | https://github.com/cruizba/ubuntu-dind/pkgs/container/ubuntu-dind |
+| Quay.io | https://quay.io/repository/cruizba/ubuntu-dind |
+
 Check also the Releases section to see the available tags: [Releases](https://github.com/cruizba/ubuntu-dind/releases)
+
+All registries publish the same tags. You can pull from any of them by prefixing the image name:
+
+```bash
+# Docker Hub (default)
+docker pull cruizba/ubuntu-dind:latest
+
+# GitHub Container Registry
+docker pull ghcr.io/cruizba/ubuntu-dind:latest
+
+# Quay.io
+docker pull quay.io/cruizba/ubuntu-dind:latest
+```
+
+All tags are released in this format:
+
+- **Fixed images**: Images with a fixed version of Docker, Docker Compose and Docker Buildx. You can check each version in the Releases section. If releases of Docker are slow from time to time, revisions will be released to keep the base image updated.
+- **Fixed images and revision**: These images are the most stable images. They have a fixed version of Docker, Docker Compose and Docker Buildx and a revision number. Once released, they will not be updated.
+- **Latest images per Ubuntu version**: These images are the latest images for each Ubuntu version. They will be updated with the latest versions of Docker, Docker Compose and Docker Buildx.
+- **Latest images**: These images are the latest Docker, Docker Compose and Docker Buildx versions for the latest Ubuntu version.
+
+### Fixed images
+
+```bash
+# Normal images
+cruizba/ubuntu-dind:focal-<docker-version>
+cruizba/ubuntu-dind:jammy-<docker-version>
+cruizba/ubuntu-dind:noble-<docker-version>
+cruizba/ubuntu-dind:resolute-<docker-version>
+
+# Systemd images
+cruizba/ubuntu-dind:focal-systemd-<docker-version>
+cruizba/ubuntu-dind:jammy-systemd-<docker-version>
+cruizba/ubuntu-dind:noble-systemd-<docker-version>
+cruizba/ubuntu-dind:resolute-systemd-<docker-version>
+```
+
+### Fixed images and revision
+
+```bash
+# Normal images
+cruizba/ubuntu-dind:focal-<docker-version>-r<revision>
+cruizba/ubuntu-dind:jammy-<docker-version>-r<revision>
+cruizba/ubuntu-dind:noble-<docker-version>-r<revision>
+cruizba/ubuntu-dind:resolute-<docker-version>-r<revision>
+
+# Systemd images
+cruizba/ubuntu-dind:focal-systemd-<docker-version>-r<revision>
+cruizba/ubuntu-dind:jammy-systemd-<docker-version>-r<revision>
+cruizba/ubuntu-dind:noble-systemd-<docker-version>-r<revision>
+cruizba/ubuntu-dind:resolute-systemd-<docker-version>-r<revision>
+```
+
+### Latest Images per Ubuntu version:
+
+```bash
+# Normal images
+cruizba/ubuntu-dind:focal-latest
+cruizba/ubuntu-dind:jammy-latest
+cruizba/ubuntu-dind:noble-latest
+cruizba/ubuntu-dind:resolute-latest
+
+# Systemd images
+cruizba/ubuntu-dind:focal-systemd-latest
+cruizba/ubuntu-dind:jammy-systemd-latest
+cruizba/ubuntu-dind:noble-systemd-latest
+cruizba/ubuntu-dind:resolute-systemd-latest
+```
+
+### Latest Images:
+
+```bash
+# Normal images
+cruizba/ubuntu-dind:latest
+
+# Systemd images
+cruizba/ubuntu-dind:systemd-latest
+```
+
+## 6. Support what I do
+
+If you like what I do, you can support me as a GitHub Sponsor. I will be very grateful for your support.
+
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor%20me%20on-GitHub-green?style=for-the-badge&logo=github)](https://github.com/sponsors/cruizba)
