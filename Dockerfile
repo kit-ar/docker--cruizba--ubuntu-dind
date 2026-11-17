@@ -75,12 +75,13 @@ RUN set -eux; \
 # git/git-lfs for checkouts, zip/unzip for Azure Pipelines tasks, .NET SDK for
 # GitVersion. .NET packages differ per Ubuntu release:
 #  - 22.04: SDK 8.0 is the newest .NET in the Ubuntu archive
-#  - 24.04: SDK 10.0, plus runtime 8.0 so net8.0 tools (GitVersion) keep working
+#  - 24.04: SDK 10.0, plus .NET and ASP.NET Core 8.0 runtimes so net8.0 tools
+#    (GitVersion) and apps keep working, as with the earlier SDK 8.0 image
 #  - 26.04+: SDK 10.0 only
 RUN set -eux; \
     case "${UBUNTU_VERSION}" in \
         22.04) dotnetPkgs='dotnet-sdk-8.0' ;; \
-        24.04) dotnetPkgs='dotnet-sdk-10.0 dotnet-runtime-8.0' ;; \
+        24.04) dotnetPkgs='dotnet-sdk-10.0 dotnet-runtime-8.0 aspnetcore-runtime-8.0' ;; \
         *) dotnetPkgs='dotnet-sdk-10.0' ;; \
     esac; \
     apt-get update; \

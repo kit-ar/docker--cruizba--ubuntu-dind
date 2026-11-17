@@ -23,7 +23,7 @@ All changes are in the block marked `kit-ar additions` near the end of the `Dock
 | Ubuntu | SDK | Extra runtimes |
 |---|---|---|
 | 22.04 | 8.0 | — |
-| 24.04 | 10.0 | 8.0 (for tools that target `net8.0`, for example older GitVersion) |
+| 24.04 | 10.0 | .NET 8.0 and ASP.NET Core 8.0 (for tools and apps that target `net8.0`, for example older GitVersion) |
 | 26.04 | 10.0 | — |
 
 On 26.04 a tool that targets only `net8.0` does not start. Use a tool version that
